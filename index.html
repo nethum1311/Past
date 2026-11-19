@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tharu Education | Past Papers & Short Notes</title>
+  <meta name="description" content="Download past papers and short notes free - Tharu Education" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+  <header class="nav">
+    <div class="container">
+      <a class="logo" href="/">
+        <span class="mark">🎓</span>
+        <span>Tharu Education<small>Papers &amp; Notes</small></span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <span class="badge">📚 Free Past Papers &amp; Short Notes</span>
+      <h1>Study smarter with <span class="grad-text">Tharu Education</span></h1>
+      <p>Past papers සහ short notes එකම තැනකින්. Search කරලා, preview කරලා, download කරගන්න.</p>
+
+      <div class="search">
+        <span class="ico">🔍</span>
+        <input id="q" type="search" placeholder="Search papers, notes, subjects..." autocomplete="off" />
+        <button class="clear" id="clearBtn" aria-label="Clear">✕</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-pill"><b id="sPapers">0</b><span>Past Papers</span></div>
+        <div class="stat-pill"><b id="sNotes">0</b><span>Short Notes</span></div>
+        <div class="stat-pill"><b id="sDown">0</b><span>Downloads</span></div>
+      </div>
+    </section>
+
+    <section class="container" id="browse">
+      <div class="filters">
+        <div class="chips" id="chips">
+          <button class="chip active" data-cat="">All</button>
+          <button class="chip" data-cat="paper">📄 Past Papers</button>
+          <button class="chip" data-cat="note">📝 Short Notes</button>
+        </div>
+        <div class="right">
+          <select id="subject"><option value="">All subjects</option></select>
+          <select id="sort">
+            <option value="new">Newest</option>
+            <option value="popular">Most downloaded</option>
+            <option value="az">A → Z</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid" id="grid"></div>
+      <div class="more"><button class="btn" id="moreBtn" style="display:none">Load more</button></div>
+    </section>
+  </main>
+
+  <!-- Details modal -->
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <header>
+        <div><span class="tag" id="mTag"></span><h2 id="mTitle" style="margin-top:8px"></h2></div>
+        <button class="x" id="mClose" aria-label="Close">✕</button>
+      </header>
+      <div class="body">
+        <div class="kv" id="mKv"></div>
+        <p id="mDesc" style="color:var(--muted)"></p>
+        <div class="disclaimer" id="mDisc"><b>⚠️ Disclaimer</b><span id="mDiscText"></span></div>
+        <iframe class="preview" id="mFrame" title="PDF preview"></iframe>
+        <div class="modal-actions">
+          <a class="btn primary" id="mDown" href="#">⬇ Download PDF</a>
+          <a class="btn" id="mOpen" href="#" target="_blank" rel="noopener">↗ Open in new tab</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="brand">THARU EDUCATION</div>
+      <div class="powered">POWERED BY <b>LYNKO TECH</b> 2026 ©</div>
+    </div>
+  </footer>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const state = { q: '', category: '', subject: '', sort: 'new', page: 1, pages: 1, items: [] };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const size = (b) => !b ? '' : b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
+const date = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+function toast(msg, type = 'ok') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type; t.textContent = msg;
+  $('#toasts').appendChild(t); setTimeout(() => t.remove(), 3500);
+}
+
+function animateNum(el, to) {
+  const start = performance.now(), dur = 900;
+  const step = (n) => {
+    const p = Math.min(1, (n - start) / dur);
+    el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString();
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+async function api(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Request failed');
+  return r.json();
+}
+
+async function loadSummary() {
+  try {
+    const s = await api('/api/summary');
+    animateNum($('#sPapers'), s.papers); animateNum($('#sNotes'), s.notes); animateNum($('#sDown'), s.downloads);
+    const subs = await api('/api/subjects');
+    $('#subject').innerHTML = '<option value="">All subjects</option>' + subs.map((x) => `<option>${esc(x)}</option>`).join('');
+  } catch (_) {}
+}
+
+function cardHTML(p, i) {
+  return `<article class="card" style="animation-delay:${Math.min(i, 11) * 40}ms">
+    <div class="top"><span class="tag ${p.category}">${p.category === 'note' ? 'Short Note' : 'Past Paper'}</span><span class="year">${esc(p.year)}</span></div>
+    <h3>${esc(p.title)}</h3>
+    ${p.subject ? `<div class="subject">${esc(p.subject)}</div>` : ''}
+    <p class="desc">${esc(p.description) || 'No description provided.'}</p>
+    <div class="meta"><span>⬇ ${p.downloads}</span><span>👁 ${p.views}</span><span>${size(p.fileSize)}</span></div>
+    <div class="actions">
+      <button class="btn" data-open="${p._id}">Details</button>
+      <a class="btn primary" href="/api/papers/${p._id}/file" data-dl="${p._id}">⬇ Download</a>
+    </div>
+  </article>`;
+}
+
+async function load(reset = true) {
+  if (reset) {
+    state.page = 1; state.items = [];
+    $('#grid').innerHTML = '<div class="skeleton"></div>'.repeat(6);
+  }
+  const qs = new URLSearchParams({ q: state.q, category: state.category, subject: state.subject, sort: state.sort, page: state.page, limit: 12 });
+  try {
+    const d = await api('/api/papers?' + qs);
+    state.pages = d.pages;
+    state.items = reset ? d.items : state.items.concat(d.items);
+    const g = $('#grid');
+    if (!state.items.length) {
+      g.innerHTML = '<div class="empty"><div class="big">🔎</div><b>Nothing found</b><p>වෙන keyword එකකින් try කරන්න.</p></div>';
+    } else {
+      g.innerHTML = state.items.map(cardHTML).join('');
+    }
+    $('#moreBtn').style.display = state.page < state.pages ? 'inline-flex' : 'none';
+  } catch (e) {
+    $('#grid').innerHTML = '<div class="empty"><div class="big">⚠️</div><b>Could not load data</b><p>Please refresh the page.</p></div>';
+  }
+}
+
+/* search (debounced) */
+let timer;
+$('#q').addEventListener('input', (e) => {
+  $('#clearBtn').style.display = e.target.value ? 'block' : 'none';
+  clearTimeout(timer);
+  timer = setTimeout(() => { state.q = e.target.value.trim(); load(); }, 320);
+});
+$('#clearBtn').onclick = () => { $('#q').value = ''; $('#clearBtn').style.display = 'none'; state.q = ''; load(); };
+
+$('#chips').addEventListener('click', (e) => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  document.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
+  b.classList.add('active'); state.category = b.dataset.cat; load();
+});
+$('#subject').onchange = (e) => { state.subject = e.target.value; load(); };
+$('#sort').onchange = (e) => { state.sort = e.target.value; load(); };
+$('#moreBtn').onclick = () => { state.page++; load(false); };
+
+/* grid actions */
+$('#grid').addEventListener('click', (e) => {
+  const o = e.target.closest('[data-open]');
+  if (o) return openModal(o.dataset.open);
+  const d = e.target.closest('[data-dl]');
+  if (d) toast('Download started ✔');
+});
+
+function openModal(id) {
+  const p = state.items.find((x) => x._id === id); if (!p) return;
+  $('#mTag').className = 'tag ' + p.category;
+  $('#mTag').textContent = p.category === 'note' ? 'Short Note' : 'Past Paper';
+  $('#mTitle').textContent = p.title;
+  $('#mKv').innerHTML = [p.subject && '📘 ' + p.subject, p.year && '📅 ' + p.year, size(p.fileSize) && '💾 ' + size(p.fileSize), '⬇ ' + p.downloads + ' downloads', 'Added ' + date(p.createdAt)]
+    .filter(Boolean).map((t) => `<span>${esc(t)}</span>`).join('');
+  $('#mDesc').textContent = p.description || '';
+  $('#mDesc').style.display = p.description ? 'block' : 'none';
+  $('#mDiscText').textContent = p.disclaimer || '';
+  $('#mDisc').style.display = p.disclaimer ? 'block' : 'none';
+  const view = `/api/papers/${id}/file?inline=1`;
+  $('#mFrame').src = view;
+  $('#mOpen').href = view;
+  $('#mDown').href = `/api/papers/${id}/file`;
+  $('#mDown').onclick = () => toast('Download started ✔');
+  $('#modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  $('#modal').classList.remove('open'); $('#mFrame').src = 'about:blank'; document.body.style.overflow = '';
+}
+$('#mClose').onclick = closeModal;
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+loadSummary();
+load();
+</script>
+</body>
+</html>
