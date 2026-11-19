@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin | Tharu Education</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+  <!-- ================= LOGIN ================= -->
+  <div class="login-wrap" id="loginView" style="display:none">
+    <form class="login" id="loginForm">
+      <div class="logo"><span class="mark">🎓</span><span>Tharu Education</span></div>
+      <h2>Admin Control</h2>
+      <p class="sub">Sign in to manage papers &amp; notes</p>
+      <div class="field"><label>Username</label><input id="lu" autocomplete="username" required /></div>
+      <div class="field"><label>Password</label><input id="lp" type="password" autocomplete="current-password" required /></div>
+      <div class="err-msg" id="lerr"></div>
+      <button class="btn primary block" id="lbtn">Sign in</button>
+      <div class="footer" style="background:none;border:0;margin-top:22px;padding:0">
+        <div class="powered">POWERED BY <b>LYNKO TECH</b> 2026 ©</div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="appView" style="display:none">
+    <header class="nav">
+      <div class="container">
+        <a class="logo" href="/admin"><span class="mark">🎓</span><span>Tharu Education<small>Admin Panel</small></span></a>
+        <div class="admin-nav-right">
+          <span class="live" id="liveBadge"><span class="dot"></span><span id="liveText">LIVE</span></span>
+          <a class="btn sm" href="/" target="_blank">View site ↗</a>
+          <button class="btn sm danger" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container admin">
+      <nav class="side" id="side">
+        <button data-tab="overview" class="active">📊 Overview</button>
+        <button data-tab="papers">📚 Manage Files</button>
+        <button data-tab="upload">⬆️ Upload New</button>
+        <button data-tab="errors">🛠 Errors <span class="badge-n" id="errBadge" style="display:none">0</span></button>
+      </nav>
+
+      <div>
+        <!-- Overview -->
+        <section class="panel active" id="tab-overview">
+          <h2>Dashboard</h2>
+          <p class="lead">Website status, downloads and activity - updates every 5 seconds.</p>
+          <div class="stat-grid">
+            <div class="stat"><small>Total files</small><b id="stTotal">0</b></div>
+            <div class="stat"><small>Past papers</small><b id="stPapers">0</b></div>
+            <div class="stat"><small>Short notes</small><b id="stNotes">0</b></div>
+            <div class="stat"><small>Total downloads</small><b id="stDown">0</b></div>
+            <div class="stat"><small>Total views</small><b id="stViews">0</b></div>
+          </div>
+          <div class="cols">
+            <div class="box">
+              <h3>Downloads - last 7 days</h3>
+              <div class="bars" id="bars"></div>
+            </div>
+            <div class="box">
+              <h3>Live website status <span class="live" id="liveBadge2"><span class="dot"></span>ONLINE</span></h3>
+              <div class="status-list" id="statusList"></div>
+            </div>
+          </div>
+          <div class="cols" style="grid-template-columns:1fr 1fr">
+            <div class="box"><h3>🔥 Top downloaded</h3><div class="list" id="topList"></div></div>
+            <div class="box"><h3>🕒 Recent downloads</h3><div class="list" id="recentList"></div></div>
+          </div>
+        </section>
+
+        <!-- Manage -->
+        <section class="panel" id="tab-papers">
+          <h2>Manage files</h2>
+          <p class="lead">Edit details, replace PDFs or delete files.</p>
+          <div class="toolbar"><input id="pq" placeholder="Search by title..." /></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Title</th><th>Type</th><th>Subject</th><th>⬇</th><th>👁</th><th>Added</th><th>Actions</th></tr></thead>
+              <tbody id="ptable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Upload -->
+        <section class="panel" id="tab-upload">
+          <h2 id="formTitle">Upload new file</h2>
+          <p class="lead">Add a past paper or short note. Stored directly in MongoDB.</p>
+          <form class="box" id="upForm">
+            <input type="hidden" id="editId" />
+            <div class="row2">
+              <div class="field"><label>Title *</label><input id="fTitle" maxlength="200" required placeholder="e.g. 2023 A/L Physics Paper" /></div>
+              <div class="field"><label>Type</label>
+                <select id="fCat"><option value="paper">Past Paper</option><option value="note">Short Note</option></select></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Subject</label><input id="fSub" maxlength="100" placeholder="e.g. Physics" /></div>
+              <div class="field"><label>Year / Grade</label><input id="fYear" maxlength="20" placeholder="e.g. 2023" /></div>
+            </div>
+            <div class="field"><label>Description</label><textarea id="fDesc" maxlength="3000" placeholder="What is inside this file?"></textarea></div>
+            <div class="field"><label>Disclaimer</label>
+              <textarea id="fDisc" maxlength="2000">This material is shared for educational purposes only. All rights belong to the original owners.</textarea></div>
+            <div class="field">
+              <label id="fileLabel">PDF file * (max 15MB)</label>
+              <div class="drop" id="drop"><div class="ic">📄</div><b id="dropName">Click or drag a PDF here</b><span>Only .pdf files</span></div>
+              <input type="file" id="fFile" accept="application/pdf,.pdf" hidden />
+              <div class="progress" id="prog"><i></i></div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn primary" id="saveBtn">⬆ Upload</button>
+              <button type="button" class="btn" id="cancelEdit" style="display:none">Cancel edit</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Errors -->
+        <section class="panel" id="tab-errors">
+          <h2>Error log</h2>
+          <p class="lead">Server errors are recorded here automatically.</p>
+          <div class="toolbar"><button class="btn" id="refreshErr">↻ Refresh</button><button class="btn danger" id="clearErr">Clear all</button></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Time</th><th>Request</th><th>Message</th></tr></thead>
+              <tbody id="etable"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="brand">THARU EDUCATION</div>
+        <div class="powered">POWERED BY <b>LYNKO TECH</b> 2026 ©</div>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const dt = (d) => new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const n = (x) => Number(x || 0).toLocaleString();
+
+function toast(msg, type = 'ok') {
+  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
+  $('#toasts').appendChild(t); setTimeout(() => t.remove(), 3500);
+}
+
+async function call(url, opts = {}) {
+  const r = await fetch(url, { credentials: 'same-origin', ...opts });
+  let data = {}; try { data = await r.json(); } catch (_) {}
+  if (r.status === 401 && !url.includes('login')) { showLogin(); throw new Error('Session expired'); }
+  if (!r.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+/* ---------------- Auth ---------------- */
+let poll;
+function showLogin() { clearInterval(poll); $('#appView').style.display = 'none'; $('#loginView').style.display = 'grid'; }
+function showApp() { $('#loginView').style.display = 'none'; $('#appView').style.display = 'block'; startPolling(); }
+
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault(); $('#lerr').textContent = ''; $('#lbtn').disabled = true;
+  try {
+    await call('/admin/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: $('#lu').value, password: $('#lp').value }) });
+    $('#lp').value = ''; showApp();
+  } catch (err) { $('#lerr').textContent = err.message; }
+  $('#lbtn').disabled = false;
+});
+$('#logoutBtn').onclick = async () => { await fetch('/admin/api/logout', { method: 'POST' }); showLogin(); };
+
+(async () => { try { await call('/admin/api/me'); showApp(); } catch (_) { showLogin(); } })();
+
+/* ---------------- Tabs ---------------- */
+$('#side').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return; openTab(b.dataset.tab);
+});
+function openTab(t) {
+  document.querySelectorAll('.side button').forEach((x) => x.classList.toggle('active', x.dataset.tab === t));
+  document.querySelectorAll('.panel').forEach((x) => x.classList.toggle('active', x.id === 'tab-' + t));
+  if (t === 'papers') loadPapers();
+  if (t === 'errors') loadErrors();
+  if (t === 'overview') { loadOverview(); loadStatus(); }
+}
+
+/* ---------------- Live status + overview ---------------- */
+function startPolling() {
+  loadOverview(); loadStatus(); loadErrors(true);
+  clearInterval(poll);
+  poll = setInterval(() => {
+    loadStatus();
+    if ($('#tab-overview').classList.contains('active')) loadOverview();
+  }, 5000);
+}
+
+const uptime = (s) => { const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60); return (d ? d + 'd ' : '') + h + 'h ' + m + 'm'; };
+
+function setLive(ok) {
+  [$('#liveBadge'), $('#liveBadge2')].forEach((b) => { b.classList.toggle('down', !ok); });
+  $('#liveText').textContent = ok ? 'LIVE' : 'OFFLINE';
+  $('#liveBadge2').innerHTML = `<span class="dot"></span>${ok ? 'ONLINE' : 'OFFLINE'}`;
+}
+
+async function loadStatus() {
+  try {
+    const s = await call('/admin/api/status');
+    setLive(true);
+    const dbc = s.db === 'connected' ? 'ok' : 'bad';
+    const pc = s.dbPing == null ? 'bad' : s.dbPing < 150 ? 'ok' : 'warn';
+    $('#statusList').innerHTML = `
+      <div><span>Server</span><b class="ok">Online</b></div>
+      <div><span>MongoDB</span><b class="${dbc}">${s.db}</b></div>
+      <div><span>DB response</span><b class="${pc}">${s.dbPing == null ? '-' : s.dbPing + ' ms'}</b></div>
+      <div><span>Uptime</span><b>${uptime(s.uptimeSec)}</b></div>
+      <div><span>Memory</span><b>${s.memoryMB} MB</b></div>
+      <div><span>Requests (since start)</span><b>${n(s.requests)}</b></div>
+      <div><span>Errors (24h)</span><b class="${s.errors24h ? 'bad' : 'ok'}">${s.errors24h}</b></div>
+      <div><span>Last check</span><b>${new Date(s.time).toLocaleTimeString()}</b></div>`;
+    const eb = $('#errBadge'); eb.textContent = s.errors24h; eb.style.display = s.errors24h ? 'inline-block' : 'none';
+  } catch (e) {
+    if (e.message === 'Session expired') return;
+    setLive(false);
+    $('#statusList').innerHTML = '<div><span>Server</span><b class="bad">Unreachable / Offline</b></div>';
+  }
+}
+
+async function loadOverview() {
+  try {
+    const d = await call('/admin/api/overview');
+    $('#stTotal').textContent = n(d.stats.total); $('#stPapers').textContent = n(d.stats.papers);
+    $('#stNotes').textContent = n(d.stats.notes); $('#stDown').textContent = n(d.stats.downloads);
+    $('#stViews').textContent = n(d.stats.views);
+    const max = Math.max(1, ...d.series.map((x) => x.count));
+    $('#bars').innerHTML = d.series.map((x) => `<div class="bar"><strong>${x.count}</strong><i style="height:${Math.max(4, x.count / max * 130)}px"></i><em>${x.day.slice(5)}</em></div>`).join('');
+    $('#topList').innerHTML = d.top.length ? d.top.map((p) => `<div class="it"><div class="t">${esc(p.title)}</div><span>⬇ ${p.downloads}</span></div>`).join('') : '<div class="it"><div>No data yet</div></div>';
+    $('#recentList').innerHTML = d.recent.length ? d.recent.map((r) => `<div class="it"><div class="t">${esc(r.title)}</div><span>${dt(r.at)}</span></div>`).join('') : '<div class="it"><div>No downloads yet</div></div>';
+  } catch (_) {}
+}
+
+/* ---------------- Papers ---------------- */
+let cache = [], pt;
+$('#pq').addEventListener('input', () => { clearTimeout(pt); pt = setTimeout(loadPapers, 300); });
+
+async function loadPapers() {
+  try {
+    cache = await call('/admin/api/papers?q=' + encodeURIComponent($('#pq').value.trim()));
+    $('#ptable').innerHTML = cache.length ? cache.map((p) => `<tr>
+      <td><b>${esc(p.title)}</b><br><small>${esc(p.year)}</small></td>
+      <td>${p.category === 'note' ? 'Note' : 'Paper'}</td><td>${esc(p.subject) || '-'}</td>
+      <td>${p.downloads}</td><td>${p.views}</td><td>${dt(p.createdAt)}</td>
+      <td><div class="acts">
+        <a class="btn sm" href="/api/papers/${p._id}/file?inline=1" target="_blank">View</a>
+        <button class="btn sm" data-edit="${p._id}">Edit</button>
+        <button class="btn sm danger" data-del="${p._id}">Delete</button></div></td></tr>`).join('')
+      : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px">No files yet - upload your first one.</td></tr>';
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+$('#ptable').addEventListener('click', async (e) => {
+  const ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
+  if (ed) startEdit(ed.dataset.edit);
+  if (del && confirm('Delete this file permanently?')) {
+    try { await call('/admin/api/papers/' + del.dataset.del, { method: 'DELETE' }); toast('Deleted'); loadPapers(); }
+    catch (err) { toast(err.message, 'err'); }
+  }
+});
+
+/* ---------------- Upload / edit form ---------------- */
+const DEFAULT_DISC = $('#fDisc').value;
+const drop = $('#drop'), fileInput = $('#fFile');
+drop.onclick = () => fileInput.click();
+['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => { if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; showName(); } });
+fileInput.onchange = showName;
+function showName() { const f = fileInput.files[0]; $('#dropName').textContent = f ? f.name + ' (' + (f.size / 1048576).toFixed(2) + ' MB)' : 'Click or drag a PDF here'; }
+
+function resetForm() {
+  $('#upForm').reset(); $('#editId').value = ''; $('#fDisc').value = DEFAULT_DISC; showName();
+  $('#formTitle').textContent = 'Upload new file'; $('#saveBtn').textContent = '⬆ Upload';
+  $('#fileLabel').textContent = 'PDF file * (max 15MB)'; $('#cancelEdit').style.display = 'none';
+}
+function startEdit(id) {
+  const p = cache.find((x) => x._id === id); if (!p) return;
+  openTab('upload');
+  $('#editId').value = id; $('#fTitle').value = p.title; $('#fCat').value = p.category; $('#fSub').value = p.subject;
+  $('#fYear').value = p.year; $('#fDesc').value = p.description; $('#fDisc').value = p.disclaimer;
+  $('#formTitle').textContent = 'Edit file'; $('#saveBtn').textContent = '💾 Save changes';
+  $('#fileLabel').textContent = 'Replace PDF (optional)'; $('#cancelEdit').style.display = 'inline-flex';
+}
+$('#cancelEdit').onclick = resetForm;
+
+$('#upForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const id = $('#editId').value, file = fileInput.files[0];
+  if (!id && !file) return toast('Please choose a PDF file', 'err');
+  const fd = new FormData();
+  fd.append('title', $('#fTitle').value); fd.append('category', $('#fCat').value);
+  fd.append('subject', $('#fSub').value); fd.append('year', $('#fYear').value);
+  fd.append('description', $('#fDesc').value); fd.append('disclaimer', $('#fDisc').value);
+  if (file) fd.append('file', file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open(id ? 'PUT' : 'POST', '/admin/api/papers' + (id ? '/' + id : ''));
+  const prog = $('#prog'); prog.style.display = file ? 'block' : 'none'; prog.firstElementChild.style.width = '0';
+  $('#saveBtn').disabled = true;
+  xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) prog.firstElementChild.style.width = (ev.loaded / ev.total * 100) + '%'; };
+  xhr.onload = () => {
+    $('#saveBtn').disabled = false; prog.style.display = 'none';
+    let d = {}; try { d = JSON.parse(xhr.responseText); } catch (_) {}
+    if (xhr.status === 401) return showLogin();
+    if (xhr.status >= 200 && xhr.status < 300) { toast(id ? 'Changes saved ✔' : 'Uploaded successfully ✔'); resetForm(); openTab('papers'); }
+    else toast(d.error || 'Upload failed', 'err');
+  };
+  xhr.onerror = () => { $('#saveBtn').disabled = false; prog.style.display = 'none'; toast('Network error', 'err'); };
+  xhr.send(fd);
+});
+
+/* ---------------- Errors ---------------- */
+async function loadErrors(quiet) {
+  try {
+    const list = await call('/admin/api/errors');
+    $('#etable').innerHTML = list.length ? list.map((x) => `<tr>
+      <td style="white-space:nowrap">${dt(x.at)}</td><td><small>${esc(x.method || '')} ${esc(x.url || '')}</small></td>
+      <td class="err-cell">${esc(x.message)}</td></tr>`).join('')
+      : '<tr><td colspan="3" style="text-align:center;color:var(--ok);padding:40px">✔ No errors recorded. All good!</td></tr>';
+  } catch (e) { if (!quiet) toast(e.message, 'err'); }
+}
+$('#refreshErr').onclick = () => loadErrors();
+$('#clearErr').onclick = async () => {
+  if (!confirm('Clear all error logs?')) return;
+  try { await call('/admin/api/errors', { method: 'DELETE' }); toast('Cleared'); loadErrors(); loadStatus(); } catch (e) { toast(e.message, 'err'); }
+};
+</script>
+</body>
+</html>
